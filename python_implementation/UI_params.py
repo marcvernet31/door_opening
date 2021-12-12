@@ -42,13 +42,20 @@ def main():
 
     falseAlarms, missedAlarms, correctAlarms, totalAlarms = [], [], [], 0
 
-    st.title("Accuracy Calculator")
+    st.title("Parameter Calculator")
 
     dfSelected = st.selectbox('Door', ("Door1", "Door2"))
     varSelected = st.selectbox('Variable', ('x', 'y', 'z'))
 
-    drift = float(st.text_input("Drift", value=0.07))
-    threshold = float(st.text_input("Threshold", value=0.01))
+    if(varSelected == "x" or varSelected == "z"):
+        defaultDrift = 0.07
+        defaultThreshold = 0.01
+    elif(varSelected == "y"):
+        defaultDrift = 0.01
+        defaultThreshold = 0.005
+
+    drift = float(st.text_input("Drift", value=defaultDrift))
+    threshold = float(st.text_input("Threshold", value=defaultThreshold))
 
 
     varRange = [0, 1000000]
@@ -60,20 +67,32 @@ def main():
         falseAlarms, missedAlarms, correctAlarms, totalAlarms = alarmLabeling(drift, threshold, var, var_label, varRange)
         end = time.time()
 
+        falseAlarms_percent = round(len(falseAlarms)/totalAlarms*100, 2)
+        missedAlarms_percent = round(len(missedAlarms)/totalAlarms*100, 2)
+        correctAlarms_percent = round(len(correctAlarms)/totalAlarms*100, 2)
+
         col1, col2 = st.beta_columns(2)
         with col1:
-            falseAlarms_percent = round(len(falseAlarms)/totalAlarms*100, 2)
-            missedAlarms_percent = round(len(missedAlarms)/totalAlarms*100, 2)
-            correctAlarms_percent = round(len(correctAlarms)/totalAlarms*100, 2)
             st.write("False alarms: ", len(falseAlarms), f"{falseAlarms_percent}%")
             st.write("Missed Alarms: ", len(missedAlarms), f"{missedAlarms_percent}%")
             st.write("Correct Alarms: ", len(correctAlarms), f"{correctAlarms_percent}%")
             st.write("Total Alarms: ", totalAlarms)
             st.write("Execution Time: ", f"{round(end-start, 1)}s")
         with col2:
-            st.warning("warnong")
+            if(falseAlarms_percent < 4):
+                st.success("False alarms are less than 4%")
+            else:
+                st.error("Too many false alarms")
+            if(correctAlarms_percent > 50):
+                st.success("Correct alarms detected are more than 50%")
+            elif(correctAlarms_percent > 40):
+                st.warning("Low number of correct alarms")
+            else:
+                st.error("Number of correct alarms too low")
 
-    st.title("Result plot")
+
+
+    st.title("Plot result")
     a = st.number_input('Plot range min', min_value=varRange[0], max_value=varRange[1], value=0)
     b = st.number_input('Plot range max', min_value=a, max_value=varRange[1], value=5000)
 
