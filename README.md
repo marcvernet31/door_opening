@@ -1,5 +1,7 @@
 # Door movement prediction
 
+The original datasets used for the project can be downloaded [here](https://gitlab.pld.ttu.ee/IAS0360/IAS0360_project_door).
+
 ## UI interface
 
 The UI interface is developed with the library `streamlit`.
