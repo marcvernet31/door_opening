@@ -1,14 +1,32 @@
+import argparse
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from matplotlib import pyplot as plt
 
+## Terminal flags
+parser = argparse.ArgumentParser()
+parser.add_argument("-df", "--df", nargs='?', const="data/data_door1.txt", help="Dataframe used")
+parser.add_argument("-range", "--dfRange", nargs='?',  const=0, help="Number of rows used (by default maximum)")
+parser.add_argument("-v", "--verb", nargs='?',  const=0, help="Verbosity of terminal input, 1 for information on each iteration")
+
+args = parser.parse_args()
 
 
-def retrieveDataFrame():
-    door1 = pd.read_csv("data/data_door1.txt",  sep=";", header=None)
-    door1 = door1.set_axis(["Timestamp", "x", "y", "z", "pressure"], axis=1, inplace=False)
+def retrieveDataFrame(df, dfRange):
+    door1 = pd.DataFrame(np.empty((0, 5)))
 
-    return door1
+    try:
+        door1 = pd.read_csv(df,  sep=";", header=None)
+    except:
+        print(f"Dataframe {df} not found")
+
+    try:
+        door1 = door1.set_axis(["Timestamp", "x", "y", "z", "pressure"], axis=1, inplace=False)
+    except:
+        print("size of the dataframe is not correct")
+
+    return door1[0:dfRange]
 
 
 def calculateMedian(i, variable, size):
@@ -55,9 +73,7 @@ def deleteSmallTops(lastZero, cleanChange, globalMax, coef2, position):
                 if(cleanChange[j] < globalMax*coef2): cleanChange[j] = min(0, cleanChange[j])
             elif(position == "min"):
                 if(cleanChange[j] > globalMax*coef2): cleanChange[j] = max(0, cleanChange[j])
-        except:
-            #print("error at: ",j)
-            error = True
+        except:            error = True
         j -= 1
 
 def isLocalMax(i, change):
@@ -73,7 +89,20 @@ def isLocalMin(i, change):
 
 def main():
 
-    door1 = retrieveDataFrame()
+    ## Reading user terminal flags
+    df = args.df
+    if(df == None): df = "data/data_door1.txt"
+
+    dfRange = args.dfRange
+    if(dfRange == 0 or dfRange == None): dfRange == len(df)
+    else: dfRange = int(dfRange)
+
+    verb = args.verb
+    if(verb == "0"): verb = False
+    elif(verb == "1"): verb = True
+
+    door1 = retrieveDataFrame(df, dfRange)
+
 
     x = list(door1.x)
     z = list(door1.z)
@@ -182,7 +211,11 @@ def main():
 
     globalState = list(["-"])
 
-    for i in range(0, 1000000):
+    ## Cycle count
+    doorState = ""
+    cyclesDetected = list()
+
+    for i in tqdm(range(0, len(door1))):
 
         ### MEDIAN calculation #####
         # Calculate median of raw data
@@ -421,16 +454,28 @@ def main():
 
         if(openVote > closedVote and openVote > otherVote):
             globalState.append("open")
+            doorState = "open"
         elif(closedVote > openVote and closedVote > otherVote):
             globalState.append("closed")
+            if(doorState == "open"):
+                doorState = "closed"
+                cyclesDetected.append(i)
         else:
             globalState.append("-")
 
+        if(verb):
+            print("i: ", i)
+            print("Timestamp: ", timestamp[i])
+            print("x: ", x[i], " | y :", y[i], " | z:", z[i])
+            print(globalState[i])
+            print(len(cyclesDetected), " cycles detected")
+            print("------")
 
-        print("Timestamp: ", timestamp[i])
-        print("x: ", x[i], " | y :", y[i], " | z:", z[i])
-        print(globalState[i])
-        print("------")
+    print("------------------------------------------------")
+    print("----------          RESULT          ------------")
+    print("------------------------------------------------")
+    print("Total cycles detected: ", len(cyclesDetected))
+
 
 
 main()
