@@ -32,8 +32,5 @@ optional arguments:
                         iteration
 ```
 
-## C implementation
-(TODO)
-
 ## Notebooks
 In the notebooks folders can be found all the jupyter notebooks used for exploration and designing of the algorithms
