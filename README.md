@@ -18,7 +18,19 @@ And to run the interface, after uncompressing `labeled_door1.csv.zip`:
 A browser should open inmediately with the interface, and in case it doesn't, it can be accessed at `http://localhost:8501/`.
 
 ## Python implementation
-The script `implementation.py` is the whole implementation of the workflow in one script. It can be executed on terminal.
+The script `implementation.py` is the whole implementation of the workflow in one script. It can be executed on terminal with:
+```
+$> python3 implementation.py
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -df [DF], --df [DF]   Dataframe used, by default data/data_door1.txt
+  -range [DFRANGE], --dfRange [DFRANGE]
+                        Number of rows used (by default maximum)
+  -v [VERB], --verb [VERB]
+                        Verbosity of terminal input, 1 for information on each
+                        iteration
+```
 
 ## C implementation
 (TODO)
